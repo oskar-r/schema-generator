@@ -4,7 +4,7 @@ This is a script that parses a data model documented in markdown for visualisati
 ## install & run
 ```bash
 npm install
-npm run serve
+node md_parse.js http://github.com/link_to.md
 ```
 
 The script will generate a ```schema.db``` file that can be used on https://dbdiagram.io/
