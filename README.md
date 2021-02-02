@@ -4,7 +4,7 @@ This is a script that can parse markdown tables and create output that can be us
 ## install & run
 ```bash
 npm install
-node md_parse.js http://github.com/raw/link_to.md
+npm run parse http://github.com/link_to.md
 ```
 
 The script will generate a ```schema.db``` file that can be used on https://dbdiagram.io/
