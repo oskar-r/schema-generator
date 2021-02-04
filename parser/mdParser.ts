@@ -1,4 +1,4 @@
-import {createMarkdownArrayTable} from 'parse-markdown-table';
+import {createMarkdownArrayTable, iterateRows} from 'parse-markdown-table';
 import {MDObject, ITableObj} from './types';
 import {toSnakeCase} from '../helpers';
 import {DBDTable} from './Table';
@@ -39,7 +39,7 @@ export default async function mdParser(mdCont: string): Promise<Array<DBDTable>>
     return Object.entries(tableObjects).filter((prop:[key: string, value: Array<ITableObj>]) => {
       return prop[1].length > 1;
     }).map((obj)=> {
-     return new DBDTable(obj[0], obj[1].map((item) => new DBDiagramRow(
+     return new DBDTable(obj[0], obj[1].filter((i) => i.attribute !== '').map((item) => new DBDiagramRow(
       item.attribute,
       item.mult,
       item.typ,
