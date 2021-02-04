@@ -1,9 +1,7 @@
-import {toSnakeCase} from '../helpers';
 import {DBDTable} from '../parser/Table';
 import { DBDiagramRow} from '../parser/Row';
-import {MDObject} from '../parser/types';
 
-export default function generateTables(tableObjects: Array<DBDTable>):string {
+export default function generateDBDTables(tableObjects: Array<DBDTable>):string {
   return tableObjects.map((tbl) => {
     //Fix each row
     tbl.columns.forEach((row) => {

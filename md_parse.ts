@@ -1,7 +1,7 @@
 import {readFileSync, writeFileSync} from 'fs';
 import fetch from 'node-fetch';
 import mdParser from './parser/mdParser';
-import generateTables from './generators/tableGenerator';
+import generateDBDTables from './generators/generateDBDTables';
 
 (async () => {
   var myArgs = process.argv.slice(2);
@@ -14,8 +14,9 @@ import generateTables from './generators/tableGenerator';
     mdCont = readFileSync(filename, {encoding:'utf8', flag:'r'});
   }
   const tableObjects = await mdParser(mdCont);
-  
-  writeFileSync('schema.db', generateTables(tableObjects), {encoding:'utf8', flag:'w'});
+  const dbdTables = tableObjects.map((item) => item.convertToDBDTable());
+
+  writeFileSync('schema.db', generateDBDTables(dbdTables), {encoding:'utf8', flag:'w'});
 })().catch(e => {
   console.error(e);
 });

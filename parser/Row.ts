@@ -52,6 +52,15 @@ export default class TblRow {
         this.dataType = (this.reference === '')?t:'uuid';
     }
   }
+
+  public convertToDBRow() {
+    return new DBDiagramRow(
+      this.attribute,
+      this.cardinality,
+      this.dataType,
+      this.enumeration,
+      this.description);
+  }
 }
 
 export class DBDiagramRow extends TblRow {

@@ -24,6 +24,10 @@ export default class Table {
   public addColumn(col: Row) {
     this.columns.push(col);
   }
+
+  public convertToDBDTable() {
+    return new DBDTable(this.name, this.columns.map((item) => item.convertToDBRow()));
+  }
 }
 
 export class DBDTable extends Table {
