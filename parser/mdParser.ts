@@ -1,8 +1,10 @@
 import {createMarkdownArrayTable} from 'parse-markdown-table';
 import {MDObject, ITableObj} from './types';
 import {toSnakeCase} from '../helpers';
+import {DBDTable} from './Table';
+import { DBDiagramRow} from '../parser/Row';
 
-export default async function mdParser(mdCont: string): Promise<MDObject>  {
+export default async function mdParser(mdCont: string): Promise<Array<DBDTable>>  {
     const table = await createMarkdownArrayTable(mdCont);
     const tableObjects: MDObject = {};
     let currentHeadline = '';
@@ -14,10 +16,9 @@ export default async function mdParser(mdCont: string): Promise<MDObject>  {
         continue;
       }
       if(row.length > 1) {
-        if (row[1].includes('Sub-property') || row[1].includes('Property')) {
-          continue;
-        }
-        if(row[1].includes(':-----')) {
+        if (row[1].includes('Sub-property')
+        || row[1].includes('Property')
+        || row[1].includes(':-----')) {
           continue;
         }
       }
@@ -38,6 +39,12 @@ export default async function mdParser(mdCont: string): Promise<MDObject>  {
     return Object.entries(tableObjects).filter((prop:[key: string, value: Array<ITableObj>]) => {
       return prop[1].length > 1;
     }).map((obj)=> {
-     return obj[0];
-    }).reduce((obj, key) => ({ ...obj, [key]: tableObjects[key] }), {});
+     return new DBDTable(obj[0], obj[1].map((item) => new DBDiagramRow(
+      item.attribute,
+      item.mult,
+      item.typ,
+      item.enum,
+      item.desc,
+      )));
+    });
   }

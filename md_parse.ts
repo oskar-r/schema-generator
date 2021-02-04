@@ -10,7 +10,6 @@ import generateTables from './generators/tableGenerator';
     const resp = await fetch(myArgs[0]);
     mdCont = await resp.text();
   } else {
-    console.log()
     const filename = (myArgs[0] && myArgs[0].length > 0) ? myArgs[0] : 'mdm.md'
     mdCont = readFileSync(filename, {encoding:'utf8', flag:'r'});
   }
