@@ -1,17 +1,32 @@
-import {createMarkdownArrayTable, iterateRows} from 'parse-markdown-table';
+import {createMarkdownArrayTable} from 'parse-markdown-table';
 import {MDObject, ITableObj} from './types';
 import {toSnakeCase} from '../helpers';
 import Table from './Table';
-import Row from '../parser/Row';
+import Root from './Root';
+import Row from './Row';
 
-export default async function mdParser(mdCont: string): Promise<Array<Table>>  {
+export default async function mdParser(mdCont: string): Promise<Root>  {
     const table = await createMarkdownArrayTable(mdCont);
     const tableObjects: MDObject = {};
+    const rootObjects:Array<string> = [];
     let currentHeadline = '';
     const tblMatchRE = /^###\s/gm;
+    const rootObjectRe = /^\* \[(?<ro>[a-zA-z]{1,})\]\(\#[a-zA-z]{1,}\)/;
+    let saveRootProps = false;
     for await (const row of table.rows) {
+      //BusinessProp is a list of root objects
+      if(row[0].includes('## Business properties')) {
+        saveRootProps = true;
+      }
+      if(saveRootProps && row[0].match(rootObjectRe)) {
+        const ro = row[0].match(rootObjectRe)?.groups?.ro;
+        if(ro) {
+          rootObjects.push(ro);
+        }
+      }
       if (row[0].match(tblMatchRE)) {
-        currentHeadline = toSnakeCase(row[0].replace("### ",'').trim());
+        saveRootProps = false; //all root props should be harvested by now
+        currentHeadline = row[0].replace("### ",'').trim();
         tableObjects[currentHeadline] = [];
         continue;
       }
@@ -34,8 +49,8 @@ export default async function mdParser(mdCont: string): Promise<Array<Table>>  {
       }
     }
     //Filter out all elements with ### that aren´t tablenames
-    return Object.entries(tableObjects).filter((prop:[key: string, value: Array<ITableObj>]) => {
-      return prop[1].length > 1;
+    const tables = Object.entries(tableObjects).filter((prop:[key: string, value: Array<ITableObj>]) => {
+      return prop[1].length > 0;
     }).map((obj)=> {
      return new Table(obj[0], obj[1].filter((i) => i.attribute !== '').map((item) => new Row(
       item.attribute,
@@ -45,4 +60,5 @@ export default async function mdParser(mdCont: string): Promise<Array<Table>>  {
       item.desc,
       )));
     });
+    return new Root(tables, rootObjects);
   }

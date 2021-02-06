@@ -1,8 +1,7 @@
-import { toSnakeCase } from "../helpers";
+import { toSnakeCase, toPascal } from "../helpers";
 
 export default class TblRow {
   attribute:string;
-  attributeSnake:string;
   cardinality:string;
   dataType:string;
   enumeration:string;
@@ -18,7 +17,6 @@ export default class TblRow {
     description: string,
   ) {
     this.attribute = attribute;
-    this.attributeSnake = toSnakeCase(attribute);
     this.cardinality = cardinality;
     this.dataType = dataType;
     this.enumeration = enumeration;
@@ -42,9 +40,6 @@ export default class TblRow {
     this.dataType.trim().split("]")[0].replace('[',''): this.dataType;
     //If not an reference then there is a need to fix type
     switch (t) {
-      case 'KeyValues':
-        this.dataType = 'json';
-        break;
       case '?':
         this.dataType = 'string';
         break;
@@ -61,10 +56,20 @@ export default class TblRow {
       this.enumeration,
       this.description);
   }
+
+  public convertToGQLField() {
+    return new GQLField(
+      this.attribute,
+      this.cardinality,
+      this.dataType,
+      this.enumeration,
+      this.description);
+  }
 }
 
 export class DBDiagramRow extends TblRow {
     referenceText:string; //Move to other class
+    attributeSnake:string;
     //DB Diagram specific
     constructor(
       attribute: string = 'id',
@@ -74,6 +79,7 @@ export class DBDiagramRow extends TblRow {
       description: string = 'auto generated id') {
       super(attribute,cardinality, dataType, enumeration, description);
       this.referenceText = '';
+      this.attributeSnake = toSnakeCase(attribute);
     }
     //Call this for DB Diagrams specific parsing
     
@@ -128,4 +134,93 @@ export class DBDiagramRow extends TblRow {
       return `\t${this.attributeSnake} ${this.dataType} ${this.referenceText}\n`;
     }
 
+}
+
+export class GQLField extends TblRow {
+  referenceText:string; //Move to other class
+  //DB Diagram specific
+  constructor(
+    attribute: string = 'id',
+    cardinality: string = '',
+    dataType: string = 'ID',
+    enumeration: string = '',
+    description: string = 'auto generated id') {
+    super(attribute,cardinality, dataType, enumeration, description);
+    this.referenceText = '';
+  }
+  //Call this for DB Diagrams specific parsing
+  
+
+  private diagramNote() {
+    return this.description != '' ? `#${this.description.replace("'",'').replace('https://','')}`:  `#${this.description}']`
+  }
+
+  public mdParse() {
+    super.mdParse();
+    //Create description in note format
+    this.diagramNote();
+  }
+  private diagamCardinality() {
+    switch (this.cardinality) {
+      case "0 - 1":
+        this.cardinality =  '$1'; //One-to-One;
+        break;
+      case "0-1":
+        this.cardinality =  '$1'; //One-to-One;
+        break;
+      case "1":
+        this.cardinality =   '$1'; //One-to-One;
+        break;
+      case "1 - n":
+        this.cardinality =   '[$1]';
+        break;
+      case "1-n":
+        this.cardinality =   '[$1]';
+        break;
+      case "0 - n":
+        this.cardinality =   '[$1]';
+        break;
+      default:
+        this.cardinality =   '[$1]';
+    }
+  }
+
+  //Need to verify that table exists before setting reference
+  public setReference(referenceType: string, refVar:string = 'id') {
+    this.diagamCardinality();
+    this.dataType = this.cardinality.replace("$1", toPascal(referenceType, true));
+  }
+
+  public prepareDescription():string {
+    return (this.reference === 'metadata') ?
+    "#Metadata table relation excluded":
+    "#"+this.description.replace('http://','').replace("'",'');
+  }
+
+  private fixType():string {
+   switch (this.dataType) {
+     case "string":
+       return "String";
+      case "enum":
+        return "String";
+      case "uInteger":
+        return "Int";
+      case "sInteger":
+        return "Int";
+      case "timestamp":
+        return "Date";
+      case "uuid":
+        return "String";
+      case "date":
+        return "Date";
+      case "boolean":
+        return "Boolean"
+    }
+    return this.dataType;
+  }
+
+  public rowText() {
+    const dt = this.fixType()
+    return `\t${this.referenceText}\n\t${this.attribute}: ${dt}\n`;
+  }
 }

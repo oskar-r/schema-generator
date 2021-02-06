@@ -4,7 +4,8 @@
   "description": "",
   "main": "parse.js",
   "scripts": {
-    "parse": "npx tsc && node out/md_parse.js",
+    "parse:dbd": "npx tsc && node out/parse.js dbd",
+    "parse:graphql": "npx tsc && node out/parse.js graphql",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
