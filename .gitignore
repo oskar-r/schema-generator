@@ -106,3 +106,6 @@ out/*
 schema.db
 mdm_old.md
 mdm.md
+app/*
+*.gql
+schema.ts

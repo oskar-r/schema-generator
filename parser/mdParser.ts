@@ -1,41 +1,75 @@
 import {createMarkdownArrayTable} from 'parse-markdown-table';
-import {MDObject, ITableObj} from './types';
+import {MDObject, ITableObj, MDObjectDesc} from './types';
 import {toSnakeCase} from '../helpers';
 import Table from './Table';
-import Root from './Root';
+import Root, { RootObject } from './Root';
 import Row from './Row';
 
 export default async function mdParser(mdCont: string): Promise<Root>  {
     const table = await createMarkdownArrayTable(mdCont);
     const tableObjects: MDObject = {};
-    const rootObjects:Array<string> = [];
+    const tableDescriptions: MDObjectDesc = {}
+    const rootObjects:Array<RootObject> = [];
     let currentHeadline = '';
     const tblMatchRE = /^###\s/gm;
     const rootObjectRe = /^\* \[(?<ro>[a-zA-z]{1,})\]\(\#[a-zA-z]{1,}\)/;
     let saveRootProps = false;
+    let multiplicityNexRow=false;
+    let tableDescNextRow=false;
     for await (const row of table.rows) {
       //BusinessProp is a list of root objects
       if(row[0].includes('## Business properties')) {
         saveRootProps = true;
       }
+      //If save the root props
       if(saveRootProps && row[0].match(rootObjectRe)) {
         const ro = row[0].match(rootObjectRe)?.groups?.ro;
         if(ro) {
-          rootObjects.push(ro);
+          rootObjects.push(new RootObject(ro, ''));
         }
       }
+      //Headline for props
       if (row[0].match(tblMatchRE)) {
         saveRootProps = false; //all root props should be harvested by now
         currentHeadline = row[0].replace("### ",'').trim();
         tableObjects[currentHeadline] = [];
+        tableDescNextRow = true;
         continue;
       }
+
+      if(tableDescNextRow && currentHeadline !== '') {
+        tableDescriptions[currentHeadline] = row[0];
+        tableDescNextRow = false;
+      }
+
+      //Filter out table headers
       if(row.length > 1) {
         if (row[1].includes('Sub-property')
         || row[1].includes('Property')
         || row[1].includes(':-----')) {
           continue;
         }
+      }
+
+      if(row[0].includes('#### Multiplicity')) {
+        multiplicityNexRow = true;
+        continue;
+      }
+
+      //This is the last part of a table block to create the root object here
+      if(multiplicityNexRow) {
+        const regex = /^.*have (?<card>\d or (many|1)).*\*(?<prop>[a-zA-z]{1,})\*/;
+        const mult = row[0].match(regex);
+        if (mult && mult.groups) {
+          const i = rootObjects.findIndex((item) => item.name === mult.groups?.prop);
+          const desc = (tableDescriptions[mult.groups?.prop])?tableDescriptions[mult.groups?.prop]:'';
+          if(i > 0) {
+            rootObjects[i].cardinality = mult.groups.card;
+            rootObjects[i].desc = desc
+          }
+        }
+        multiplicityNexRow = false;
+        continue;
       }
   
       if (row.length > 5 && tableObjects[currentHeadline]) {

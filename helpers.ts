@@ -12,3 +12,8 @@ export const toPascal = (str: string, firstUpper: boolean):string => {
   str.replace(regex, (m, chr) => chr.toUpperCase());
   return trans;
 }
+
+export const cleanUpDescriptions = (str: string): string => {
+  const regex = /\"(.*)\"/gm;
+    return '"'+str.replace('http://','').replace("'",'').replace(regex,'$1')+'"';
+}

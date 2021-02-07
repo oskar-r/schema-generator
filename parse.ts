@@ -2,7 +2,7 @@ import {readFileSync, writeFileSync} from 'fs';
 import fetch from 'node-fetch';
 import mdParser from './parser/mdParser';
 import generateDBDTables from './generators/generateDBDTables';
-import generateGQLTypes from './generators/generateGQL';
+import generateGQLTypes, { generateTSSchema } from './generators/generateGQL';
 
 (async () => {
   var myArgs = process.argv.slice(2);
@@ -24,7 +24,8 @@ import generateGQLTypes from './generators/generateGQL';
       break;
     case 'graphql':
       const gqlTypes = tableRoot.tables.map((item) => item.convertToGQLType());
-      writeFileSync('schema.gql', generateGQLTypes(gqlTypes, tableRoot.rootObjects), {encoding:'utf8', flag:'w'});
+      writeFileSync('schema.gql', generateGQLTypes(gqlTypes, tableRoot), {encoding:'utf8', flag:'w'});
+      writeFileSync('schema.ts', generateTSSchema(gqlTypes, tableRoot), {encoding:'utf8', flag:'w'});
       break;
     default:
       console.log('Unknown output '+output +'use db or graphql');

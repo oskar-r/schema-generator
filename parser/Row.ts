@@ -152,7 +152,7 @@ export class GQLField extends TblRow {
   
 
   private diagramNote() {
-    return this.description != '' ? `#${this.description.replace("'",'').replace('https://','')}`:  `#${this.description}']`
+    return this.description != '' ? `"${this.description.replace("'",'').replace('https://','')}"`:  `"${this.description}"']`
   }
 
   public mdParse() {
@@ -192,9 +192,10 @@ export class GQLField extends TblRow {
   }
 
   public prepareDescription():string {
+    const regex = /\"(.*)\"/gm;
     return (this.reference === 'metadata') ?
-    "#Metadata table relation excluded":
-    "#"+this.description.replace('http://','').replace("'",'');
+    '"Metadata table relation excluded"':
+    '"'+this.description.replace('http://','').replace("'",'').replace(regex,'$1')+'"';
   }
 
   private fixType():string {
