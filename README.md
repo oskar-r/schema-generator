@@ -18,11 +18,26 @@ npm run parse:graphql http://github.com/raw/link_to.md
 Output can be found in the root directory.
 
 ## Inspect graphql schema
-If a graphql schema was created you can interact with it by spinning up an Apollo server with the provided docker file.
+If a graphql schema was created you can interact with it using a simple Apollo-express server.
+### Node
+Start the Apllo-express server from the command line with
+```bash
+npm run server
+```
+### Docker
+There is a provided docker images that can be built
 ```bash
 docker build . -t gql-test/apollo-server
 docker run -p 4000:4000 --name apollo gql-test/apollo-server
 ```
-You can now go to <a href="http://localhost:4000/graphql">http://localhost:4000/graphql</a> to inspect the generated schema
+Once the server is up you can access <a href="http://localhost:4000/graphql">http://localhost:4000/graphql</a> to inspect the generated schema and look at the docs
 
+To interact with the schema test out the query below (change xxx) to an base property in your schema. 
+```js
+query {
+  xxx{
+    xxx
+  }
+}
+```
 Tested with node v10.15.3

@@ -1,16 +1,16 @@
 {
   "name": "md_parser",
   "version": "1.0.0",
-  "description": "",
+  "description": "This is a small utility that is used to generate schemas from markdown documentation",
   "main": "parse.js",
   "scripts": {
     "parse:dbd": "npx tsc && node out/parse.js dbd",
     "parse:graphql": "npx tsc && node out/parse.js graphql",
-    "serve": "npx tsc && node out/server/graphqlServer.js",
+    "serve": "npx tsc --build server/tsconfig.json && node app/server/graphqlServer.js",
     "build:server": "npx tsc --build server/tsconfig.json",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": "Oskar Roman",
   "license": "ISC",
   "dependencies": {
     "apollo-server-express": "^2.19.2",
